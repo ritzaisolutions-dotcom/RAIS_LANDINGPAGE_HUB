@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="de" class="scroll-smooth">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kampagnen-Hub — RAIS</title>
+    <meta name="robots" content="noindex, nofollow">
+    <style>
+        :root {
+            --background: 40 29% 94%;
+            --foreground: 24 13% 16%;
+            --border: 36 21% 83%;
+            --industrial-orange: 18 83% 57%;
+            --dark-pistachio: 95 28% 26%;
+            --muted-stone: 31 8% 42%;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: -apple-system, "Inter", "Segoe UI", sans-serif;
+            background: hsl(var(--background));
+            color: hsl(var(--foreground));
+            background-image:
+                radial-gradient(circle at top right, rgba(143, 159, 114, 0.18), transparent 28%),
+                radial-gradient(circle at 16% 18%, rgba(72, 96, 54, 0.1), transparent 24%),
+                linear-gradient(180deg, rgba(251, 248, 243, 0.98), rgba(244, 241, 234, 1));
+            min-height: 100vh;
+            padding-bottom: 4rem;
+        }
+
+        .site-shell {
+            width: min(62rem, calc(100vw - 2rem));
+            margin: 0 auto;
+        }
+
+        /* ── Header ── */
+        .hub-header {
+            padding: 1.5rem 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .brand-word {
+            font-size: 1.55rem;
+            font-weight: 700;
+            color: hsl(var(--foreground));
+            letter-spacing: -0.01em;
+        }
+
+        .brand-sep {
+            color: hsl(var(--border));
+            font-weight: 300;
+            font-size: 1.2rem;
+        }
+
+        .hub-badge {
+            font-size: 0.68rem;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+            color: hsl(var(--dark-pistachio));
+            font-weight: 500;
+            background: rgba(60, 90, 42, 0.1);
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+        }
+
+        /* ── Shared ── */
+        .signal-label {
+            font-size: 0.65rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: hsl(var(--dark-pistachio));
+            margin-bottom: 0.65rem;
+            font-weight: 500;
+        }
+
+        .signal-divider {
+            height: 1px;
+            background: linear-gradient(90deg, rgba(72, 96, 54, 0.75), rgba(236, 106, 55, 0.5), rgba(217, 209, 199, 0.15));
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: rgba(251, 248, 243, 0.96);
+            border: 1px solid rgba(72, 96, 54, 0.18);
+            border-radius: 1.25rem;
+            padding: 1.75rem 1.75rem 2rem;
+            box-shadow: 0 6px 24px rgba(47, 42, 36, 0.06);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: hsl(var(--foreground));
+            margin-bottom: 1.25rem;
+        }
+
+        /* ── Form ── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .form-group.full { grid-column: 1 / -1; }
+
+        label {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: hsl(var(--foreground));
+        }
+
+        label .hint {
+            font-weight: 400;
+            color: hsl(var(--muted-stone));
+            margin-left: 0.35rem;
+        }
+
+        input[type="text"],
+        input[type="url"] {
+            width: 100%;
+            padding: 0.65rem 0.9rem;
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.6rem;
+            background: rgba(255, 255, 255, 0.75);
+            color: hsl(var(--foreground));
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            outline: none;
+        }
+
+        input[type="text"]:focus,
+        input[type="url"]:focus {
+            border-color: hsl(var(--industrial-orange));
+            box-shadow: 0 0 0 3px rgba(236, 106, 55, 0.12);
+        }
+
+        /* ── Generated Link ── */
+        .link-preview-box {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.75rem;
+            padding: 0.85rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1.25rem;
+        }
+
+        .link-preview-url {
+            flex: 1;
+            min-width: 0;
+            font-size: 0.82rem;
+            color: hsl(var(--muted-stone));
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: 'Courier New', monospace;
+        }
+
+        .link-preview-url.has-value {
+            color: hsl(var(--industrial-orange));
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.6rem 1.1rem;
+            border-radius: 0.6rem;
+            border: none;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 500;
+            font-family: inherit;
+            transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
+        }
+
+        .btn-primary {
+            background: hsl(var(--industrial-orange));
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(236, 106, 55, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: hsl(18 83% 63%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(236, 106, 55, 0.28);
+        }
+
+        .btn-secondary {
+            background: rgba(60, 90, 42, 0.1);
+            color: hsl(var(--dark-pistachio));
+        }
+
+        .btn-secondary:hover {
+            background: rgba(60, 90, 42, 0.17);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: hsl(var(--muted-stone));
+            border: 1px solid hsl(var(--border));
+        }
+
+        .btn-ghost:hover {
+            color: hsl(var(--foreground));
+            border-color: rgba(72, 96, 54, 0.35);
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: #c0392b;
+            border: 1px solid rgba(192, 57, 43, 0.3);
+            font-size: 0.82rem;
+        }
+
+        .btn-danger:hover {
+            background: rgba(192, 57, 43, 0.07);
+        }
+
+        .copy-feedback {
+            font-size: 0.78rem;
+            color: hsl(var(--dark-pistachio));
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+        }
+
+        .copy-feedback.visible { opacity: 1; }
+
+        /* ── Settings ── */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        details summary {
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: hsl(var(--muted-stone));
+            user-select: none;
+            padding: 0.25rem 0;
+        }
+
+        details summary::-webkit-details-marker { display: none; }
+
+        details summary .toggle-icon {
+            font-size: 0.7rem;
+            transition: transform 0.2s;
+        }
+
+        details[open] summary .toggle-icon { transform: rotate(90deg); }
+
+        details .settings-inner {
+            margin-top: 1rem;
+        }
+
+        /* ── History ── */
+        .history-actions {
+            display: flex;
+            gap: 0.65rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .history-count {
+            font-size: 0.82rem;
+            color: hsl(var(--muted-stone));
+            margin-left: auto;
+        }
+
+        .history-table-wrap {
+            overflow-x: auto;
+            border-radius: 0.75rem;
+            border: 1px solid hsl(var(--border));
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        thead th {
+            background: rgba(120, 148, 100, 0.1);
+            color: hsl(var(--foreground));
+            font-weight: 600;
+            padding: 0.65rem 0.9rem;
+            text-align: left;
+            border-bottom: 1px solid hsl(var(--border));
+            white-space: nowrap;
+        }
+
+        tbody tr:hover td { background: rgba(120, 148, 100, 0.05); }
+
+        tbody td {
+            padding: 0.65rem 0.9rem;
+            border-bottom: 1px solid hsl(var(--border));
+            color: hsl(var(--muted-stone));
+            vertical-align: middle;
+        }
+
+        tbody tr:last-child td { border-bottom: 0; }
+
+        .td-name { color: hsl(var(--foreground)); font-weight: 500; }
+
+        .td-link {
+            max-width: 22rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .td-link a {
+            color: hsl(var(--industrial-orange));
+            text-decoration: none;
+            font-size: 0.78rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .td-link a:hover { text-decoration: underline; }
+
+        .td-date { white-space: nowrap; font-size: 0.78rem; }
+
+        .empty-state {
+            padding: 2.5rem 1rem;
+            text-align: center;
+            color: hsl(var(--muted-stone));
+            font-size: 0.9rem;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .form-grid, .settings-grid { grid-template-columns: 1fr; }
+            .form-group.full { grid-column: 1; }
+            .link-preview-box { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="site-shell">
+
+    <header class="hub-header">
+        <span class="brand-word">RAIS</span>
+        <span class="brand-sep">/</span>
+        <span class="hub-badge">Kampagnen-Hub</span>
+    </header>
+
+    <!-- Generator Card -->
+    <div class="card">
+        <div class="signal-label">Link-Generator</div>
+        <div class="signal-divider"></div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="input-name">Name des Empfängers</label>
+                <input type="text" id="input-name" placeholder="Max Mustermann" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="input-biz">Betriebsname</label>
+                <input type="text" id="input-biz" placeholder="Fliesen Mustermann GmbH" autocomplete="off">
+            </div>
+        </div>
+
+        <div class="link-preview-box" id="link-preview-box">
+            <span class="link-preview-url" id="link-preview-url">Fülle die Felder aus, um einen Link zu generieren.</span>
+            <button class="btn btn-primary" id="btn-copy" onclick="copyLink()" disabled>
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+                    <path d="M10 5V3a1.5 1.5 0 0 0-1.5-1.5H3A1.5 1.5 0 0 0 1.5 3v5.5A1.5 1.5 0 0 0 3 10h2" stroke="currentColor" stroke-width="1.4"/>
+                </svg>
+                Link kopieren
+            </button>
+            <span class="copy-feedback" id="copy-feedback">✓ Kopiert</span>
+        </div>
+
+        <div style="margin-top:1.5rem">
+            <details id="settings-details">
+                <summary>
+                    <span class="toggle-icon">▶</span>
+                    Einstellungen (Calendly-Link &amp; Landing-Page-URL)
+                </summary>
+                <div class="settings-inner">
+                    <div class="settings-grid">
+                        <div class="form-group">
+                            <label for="input-cal">Calendly-Buchungslink <span class="hint">wird im Link codiert</span></label>
+                            <input type="url" id="input-cal" placeholder="https://calendly.com/...">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-base">Landing-Page-URL <span class="hint">Basis für den generierten Link</span></label>
+                            <input type="url" id="input-base" placeholder="https://deine-landing-page.vercel.app/">
+                        </div>
+                    </div>
+                    <div style="margin-top:0.85rem;display:flex;gap:0.65rem;flex-wrap:wrap">
+                        <button class="btn btn-secondary" onclick="saveSettings()">Einstellungen speichern</button>
+                        <button class="btn btn-ghost" onclick="resetSettings()">Zurücksetzen</button>
+                        <span id="settings-feedback" style="font-size:0.8rem;color:hsl(95 28% 26%);align-self:center;opacity:0;transition:opacity 0.2s"></span>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <!-- History Card -->
+    <div class="card">
+        <div class="signal-label">Link-Verlauf</div>
+        <div class="signal-divider"></div>
+        <div class="history-actions">
+            <button class="btn btn-secondary" onclick="exportCsv()">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M7 1v8M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 11h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                CSV exportieren
+            </button>
+            <button class="btn btn-danger" onclick="clearHistory()">Verlauf löschen</button>
+            <span class="history-count" id="history-count">0 Einträge</span>
+        </div>
+        <div class="history-table-wrap">
+            <table id="history-table">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Name</th>
+                        <th>Betrieb</th>
+                        <th>Link</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="history-body">
+                    <tr>
+                        <td colspan="5" class="empty-state">Noch keine Links generiert. Der Verlauf wird nach dem Kopieren eines Links automatisch gespeichert.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+var DEFAULT_CAL  = 'https://calendly.com/ritzaisolutions/30min';
+var DEFAULT_BASE = '';
+var STORAGE_KEY_SETTINGS = 'rais_hub_settings';
+var STORAGE_KEY_HISTORY  = 'rais_hub_history';
+
+/* ── Init ── */
+(function init() {
+    loadSettings();
+    renderHistory();
+    document.getElementById('input-name').addEventListener('input', updateLink);
+    document.getElementById('input-biz').addEventListener('input', updateLink);
+    document.getElementById('input-cal').addEventListener('input', updateLink);
+    document.getElementById('input-base').addEventListener('input', updateLink);
+})();
+
+/* ── Settings ── */
+function loadSettings() {
+    try {
+        var s = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS) || '{}');
+        document.getElementById('input-cal').value  = s.cal  || DEFAULT_CAL;
+        document.getElementById('input-base').value = s.base || DEFAULT_BASE;
+    } catch (e) {
+        document.getElementById('input-cal').value  = DEFAULT_CAL;
+        document.getElementById('input-base').value = DEFAULT_BASE;
+    }
+    updateLink();
+}
+
+function saveSettings() {
+    var s = {
+        cal:  document.getElementById('input-cal').value.trim(),
+        base: document.getElementById('input-base').value.trim()
+    };
+    localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(s));
+    var fb = document.getElementById('settings-feedback');
+    fb.textContent = '✓ Gespeichert';
+    fb.style.opacity = '1';
+    setTimeout(function() { fb.style.opacity = '0'; }, 2000);
+    updateLink();
+}
+
+function resetSettings() {
+    document.getElementById('input-cal').value  = DEFAULT_CAL;
+    document.getElementById('input-base').value = DEFAULT_BASE;
+    saveSettings();
+}
+
+/* ── Link Generation ── */
+function buildLink() {
+    var name = document.getElementById('input-name').value.trim();
+    var biz  = document.getElementById('input-biz').value.trim();
+    var cal  = document.getElementById('input-cal').value.trim()  || DEFAULT_CAL;
+    var base = document.getElementById('input-base').value.trim() || '';
+
+    if (!name && !biz) return null;
+
+    var baseUrl = base.replace(/\/?$/, '/');
+    if (!baseUrl.startsWith('http') && base !== '') {
+        baseUrl = 'https://' + baseUrl;
+    }
+
+    var params = new URLSearchParams();
+    if (name) params.set('name', name);
+    if (biz)  params.set('business', biz);
+    params.set('cal', cal);
+
+    return baseUrl + '?' + params.toString();
+}
+
+function updateLink() {
+    var link   = buildLink();
+    var urlEl  = document.getElementById('link-preview-url');
+    var copyBtn = document.getElementById('btn-copy');
+
+    if (link) {
+        urlEl.textContent = link;
+        urlEl.classList.add('has-value');
+        copyBtn.disabled = false;
+    } else {
+        urlEl.textContent = 'Fülle die Felder aus, um einen Link zu generieren.';
+        urlEl.classList.remove('has-value');
+        copyBtn.disabled = true;
+    }
+}
+
+/* ── Copy ── */
+function copyLink() {
+    var link = buildLink();
+    if (!link) return;
+
+    navigator.clipboard.writeText(link).then(function() {
+        showCopyFeedback();
+        addToHistory(link);
+    }).catch(function() {
+        var ta = document.createElement('textarea');
+        ta.value = link;
+        ta.style.position = 'fixed';
+        ta.style.opacity  = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showCopyFeedback();
+        addToHistory(link);
+    });
+}
+
+function showCopyFeedback() {
+    var fb = document.getElementById('copy-feedback');
+    fb.classList.add('visible');
+    setTimeout(function() { fb.classList.remove('visible'); }, 2000);
+}
+
+/* ── History ── */
+function getHistory() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY_HISTORY) || '[]'); }
+    catch (e) { return []; }
+}
+
+function saveHistoryData(data) {
+    localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(data));
+}
+
+function addToHistory(link) {
+    var name = document.getElementById('input-name').value.trim() || '—';
+    var biz  = document.getElementById('input-biz').value.trim()  || '—';
+    var data = getHistory();
+    data.unshift({
+        date: new Date().toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        name: name,
+        biz:  biz,
+        link: link
+    });
+    saveHistoryData(data);
+    renderHistory();
+}
+
+function renderHistory() {
+    var data = getHistory();
+    var tbody = document.getElementById('history-body');
+    var countEl = document.getElementById('history-count');
+
+    countEl.textContent = data.length + (data.length === 1 ? ' Eintrag' : ' Einträge');
+
+    if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Noch keine Links generiert. Der Verlauf wird nach dem Kopieren eines Links automatisch gespeichert.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = data.map(function(row, i) {
+        return '<tr>' +
+            '<td class="td-date">' + esc(row.date) + '</td>' +
+            '<td class="td-name">' + esc(row.name) + '</td>' +
+            '<td>' + esc(row.biz) + '</td>' +
+            '<td class="td-link"><a href="' + esc(row.link) + '" target="_blank" rel="noopener">' + esc(row.link) + '</a></td>' +
+            '<td><button class="btn btn-ghost" style="padding:0.35rem 0.7rem;font-size:0.78rem" onclick="copyHistoryLink(' + i + ')">Kopieren</button></td>' +
+            '</tr>';
+    }).join('');
+}
+
+function copyHistoryLink(index) {
+    var data = getHistory();
+    if (!data[index]) return;
+    navigator.clipboard.writeText(data[index].link).catch(function() {
+        var ta = document.createElement('textarea');
+        ta.value = data[index].link;
+        ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+    });
+}
+
+function clearHistory() {
+    if (!confirm('Verlauf wirklich löschen?')) return;
+    saveHistoryData([]);
+    renderHistory();
+}
+
+/* ── CSV Export ── */
+function exportCsv() {
+    var data = getHistory();
+    if (data.length === 0) { alert('Kein Verlauf zum Exportieren.'); return; }
+
+    var rows = [['Datum', 'Name', 'Betrieb', 'Link']].concat(
+        data.map(function(r) { return [csvCell(r.date), csvCell(r.name), csvCell(r.biz), csvCell(r.link)]; })
+    );
+
+    var csv = '﻿' + rows.map(function(r) { return r.join(';'); }).join('\r\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'rais-kampagne-links-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+/* ── Helpers ── */
+function esc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function csvCell(val) {
+    var s = String(val || '');
+    if (s.includes(';') || s.includes('"') || s.includes('\n')) {
+        return '"' + s.replace(/"/g, '""') + '"';
+    }
+    return s;
+}
+</script>
+
+</body>
+</html>
