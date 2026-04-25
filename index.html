@@ -350,6 +350,84 @@
             font-size: 0.9rem;
         }
 
+        /* ── Password Gate ── */
+        #pw-overlay {
+            position: fixed;
+            inset: 0;
+            background: hsl(var(--background));
+            background-image:
+                radial-gradient(circle at top right, rgba(143, 159, 114, 0.18), transparent 28%),
+                radial-gradient(circle at 16% 18%, rgba(72, 96, 54, 0.1), transparent 24%),
+                linear-gradient(180deg, rgba(251, 248, 243, 0.98), rgba(244, 241, 234, 1));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        #pw-overlay.hidden { display: none; }
+
+        .pw-card {
+            background: rgba(251, 248, 243, 0.98);
+            border: 1px solid rgba(72, 96, 54, 0.18);
+            border-radius: 1.25rem;
+            padding: 2.25rem 2rem 2rem;
+            box-shadow: 0 8px 32px rgba(47, 42, 36, 0.1);
+            width: min(22rem, calc(100vw - 2rem));
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .pw-header {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .pw-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: hsl(var(--foreground));
+        }
+
+        .pw-input-wrap {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        #pw-input {
+            width: 100%;
+            padding: 0.65rem 0.9rem;
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.6rem;
+            background: rgba(255, 255, 255, 0.85);
+            color: hsl(var(--foreground));
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            outline: none;
+        }
+
+        #pw-input:focus {
+            border-color: hsl(var(--industrial-orange));
+            box-shadow: 0 0 0 3px rgba(236, 106, 55, 0.12);
+        }
+
+        #pw-input.pw-error {
+            border-color: #c0392b;
+            box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.1);
+        }
+
+        #pw-error-msg {
+            font-size: 0.8rem;
+            color: #c0392b;
+            min-height: 1.1rem;
+        }
+
         /* ── Responsive ── */
         @media (max-width: 640px) {
             .form-grid, .settings-grid { grid-template-columns: 1fr; }
@@ -359,6 +437,25 @@
     </style>
 </head>
 <body>
+
+<!-- Password Gate -->
+<div id="pw-overlay">
+    <div class="pw-card">
+        <div class="pw-header">
+            <span class="brand-word">RAIS</span>
+            <span class="brand-sep">/</span>
+            <span class="hub-badge">Kampagnen-Hub</span>
+        </div>
+        <div class="pw-input-wrap">
+            <label for="pw-input" style="font-size:0.82rem;font-weight:500">Passwort eingeben</label>
+            <input type="password" id="pw-input" placeholder="••••••••" autocomplete="current-password">
+            <span id="pw-error-msg"></span>
+        </div>
+        <button class="btn btn-primary" onclick="checkPassword()" style="width:100%;justify-content:center">
+            Zugang öffnen
+        </button>
+    </div>
+</div>
 
 <div class="site-shell">
 
@@ -416,6 +513,10 @@
                             <label for="input-base">Landing-Page-URL <span class="hint">Basis für den generierten Link</span></label>
                             <input type="url" id="input-base" placeholder="https://deine-landing-page.vercel.app/">
                         </div>
+                        <div class="form-group full">
+                            <label for="input-pw">Hub-Passwort <span class="hint">schützt den Zugang zum Hub</span></label>
+                            <input type="password" id="input-pw" placeholder="Neues Passwort eingeben" autocomplete="new-password">
+                        </div>
                     </div>
                     <div style="margin-top:0.85rem;display:flex;gap:0.65rem;flex-wrap:wrap">
                         <button class="btn btn-secondary" onclick="saveSettings()">Einstellungen speichern</button>
@@ -468,11 +569,48 @@
 var DEFAULT_CAL  = 'https://calendly.com/ritzaisolutions/30min';
 var DEFAULT_DEMO = 'https://project-frjzx.vercel.app/';
 var DEFAULT_BASE = '';
+var DEFAULT_PW   = 'rais2025';
 var STORAGE_KEY_SETTINGS = 'rais_hub_settings';
 var STORAGE_KEY_HISTORY  = 'rais_hub_history';
+var STORAGE_KEY_AUTH     = 'rais_hub_auth';
+
+/* ── Password Gate ── */
+function getStoredPassword() {
+    try {
+        var s = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS) || '{}');
+        return s.pw || DEFAULT_PW;
+    } catch (e) { return DEFAULT_PW; }
+}
+
+function checkPassword() {
+    var input = document.getElementById('pw-input').value;
+    var errEl = document.getElementById('pw-error-msg');
+    var inputEl = document.getElementById('pw-input');
+
+    if (input === getStoredPassword()) {
+        sessionStorage.setItem(STORAGE_KEY_AUTH, '1');
+        document.getElementById('pw-overlay').classList.add('hidden');
+        errEl.textContent = '';
+        inputEl.classList.remove('pw-error');
+    } else {
+        errEl.textContent = 'Falsches Passwort. Bitte erneut versuchen.';
+        inputEl.classList.add('pw-error');
+        inputEl.value = '';
+        inputEl.focus();
+    }
+}
 
 /* ── Init ── */
 (function init() {
+    if (!sessionStorage.getItem(STORAGE_KEY_AUTH)) {
+        document.getElementById('pw-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') checkPassword();
+        });
+        setTimeout(function() { document.getElementById('pw-input').focus(); }, 100);
+    } else {
+        document.getElementById('pw-overlay').classList.add('hidden');
+    }
+
     loadSettings();
     renderHistory();
     document.getElementById('input-name').addEventListener('input', updateLink);
@@ -498,16 +636,23 @@ function loadSettings() {
 }
 
 function saveSettings() {
+    var existing = {};
+    try { existing = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS) || '{}'); } catch (e) {}
+
+    var newPw = document.getElementById('input-pw').value.trim();
     var s = {
         cal:  document.getElementById('input-cal').value.trim(),
         demo: document.getElementById('input-demo').value.trim(),
-        base: document.getElementById('input-base').value.trim()
+        base: document.getElementById('input-base').value.trim(),
+        pw:   newPw || existing.pw || DEFAULT_PW
     };
     localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(s));
+    document.getElementById('input-pw').value = '';
+
     var fb = document.getElementById('settings-feedback');
-    fb.textContent = '✓ Gespeichert';
+    fb.textContent = newPw ? '✓ Gespeichert (Passwort geändert)' : '✓ Gespeichert';
     fb.style.opacity = '1';
-    setTimeout(function() { fb.style.opacity = '0'; }, 2000);
+    setTimeout(function() { fb.style.opacity = '0'; }, 2500);
     updateLink();
 }
 
@@ -515,6 +660,7 @@ function resetSettings() {
     document.getElementById('input-cal').value  = DEFAULT_CAL;
     document.getElementById('input-demo').value = DEFAULT_DEMO;
     document.getElementById('input-base').value = DEFAULT_BASE;
+    document.getElementById('input-pw').value   = '';
     saveSettings();
 }
 
