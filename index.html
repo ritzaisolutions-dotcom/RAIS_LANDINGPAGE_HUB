@@ -513,10 +513,6 @@
                             <label for="input-base">Landing-Page-URL <span class="hint">Basis für den generierten Link</span></label>
                             <input type="url" id="input-base" placeholder="https://deine-landing-page.vercel.app/">
                         </div>
-                        <div class="form-group full">
-                            <label for="input-pw">Hub-Passwort <span class="hint">schützt den Zugang zum Hub</span></label>
-                            <input type="password" id="input-pw" placeholder="Neues Passwort eingeben" autocomplete="new-password">
-                        </div>
                     </div>
                     <div style="margin-top:0.85rem;display:flex;gap:0.65rem;flex-wrap:wrap">
                         <button class="btn btn-secondary" onclick="saveSettings()">Einstellungen speichern</button>
@@ -569,35 +565,46 @@
 var DEFAULT_CAL  = 'https://calendly.com/ritzaisolutions/30min';
 var DEFAULT_DEMO = 'https://project-frjzx.vercel.app/';
 var DEFAULT_BASE = '';
-var DEFAULT_PW   = 'rais2025';
 var STORAGE_KEY_SETTINGS = 'rais_hub_settings';
 var STORAGE_KEY_HISTORY  = 'rais_hub_history';
 var STORAGE_KEY_AUTH     = 'rais_hub_auth';
 
 /* ── Password Gate ── */
-function getStoredPassword() {
-    try {
-        var s = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS) || '{}');
-        return s.pw || DEFAULT_PW;
-    } catch (e) { return DEFAULT_PW; }
-}
-
 function checkPassword() {
-    var input = document.getElementById('pw-input').value;
-    var errEl = document.getElementById('pw-error-msg');
+    var input   = document.getElementById('pw-input').value;
+    var errEl   = document.getElementById('pw-error-msg');
     var inputEl = document.getElementById('pw-input');
+    var btn     = document.querySelector('#pw-overlay .btn-primary');
 
-    if (input === getStoredPassword()) {
-        sessionStorage.setItem(STORAGE_KEY_AUTH, '1');
-        document.getElementById('pw-overlay').classList.add('hidden');
-        errEl.textContent = '';
-        inputEl.classList.remove('pw-error');
-    } else {
-        errEl.textContent = 'Falsches Passwort. Bitte erneut versuchen.';
-        inputEl.classList.add('pw-error');
-        inputEl.value = '';
-        inputEl.focus();
-    }
+    if (!input) return;
+
+    btn.disabled = true;
+    btn.textContent = '…';
+
+    fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: input })
+    })
+    .then(function(res) { return res.json().then(function(data) { return { status: res.status, data: data }; }); })
+    .then(function(r) {
+        if (r.data.ok) {
+            sessionStorage.setItem(STORAGE_KEY_AUTH, '1');
+            document.getElementById('pw-overlay').classList.add('hidden');
+        } else {
+            errEl.textContent = 'Falsches Passwort. Bitte erneut versuchen.';
+            inputEl.classList.add('pw-error');
+            inputEl.value = '';
+            inputEl.focus();
+            btn.disabled = false;
+            btn.textContent = 'Zugang öffnen';
+        }
+    })
+    .catch(function() {
+        errEl.textContent = 'Verbindungsfehler. Bitte Seite neu laden.';
+        btn.disabled = false;
+        btn.textContent = 'Zugang öffnen';
+    });
 }
 
 /* ── Init ── */
@@ -636,23 +643,17 @@ function loadSettings() {
 }
 
 function saveSettings() {
-    var existing = {};
-    try { existing = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS) || '{}'); } catch (e) {}
-
-    var newPw = document.getElementById('input-pw').value.trim();
     var s = {
         cal:  document.getElementById('input-cal').value.trim(),
         demo: document.getElementById('input-demo').value.trim(),
-        base: document.getElementById('input-base').value.trim(),
-        pw:   newPw || existing.pw || DEFAULT_PW
+        base: document.getElementById('input-base').value.trim()
     };
     localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(s));
-    document.getElementById('input-pw').value = '';
 
     var fb = document.getElementById('settings-feedback');
-    fb.textContent = newPw ? '✓ Gespeichert (Passwort geändert)' : '✓ Gespeichert';
+    fb.textContent = '✓ Gespeichert';
     fb.style.opacity = '1';
-    setTimeout(function() { fb.style.opacity = '0'; }, 2500);
+    setTimeout(function() { fb.style.opacity = '0'; }, 2000);
     updateLink();
 }
 
@@ -660,7 +661,6 @@ function resetSettings() {
     document.getElementById('input-cal').value  = DEFAULT_CAL;
     document.getElementById('input-demo').value = DEFAULT_DEMO;
     document.getElementById('input-base').value = DEFAULT_BASE;
-    document.getElementById('input-pw').value   = '';
     saveSettings();
 }
 
