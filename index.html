@@ -409,6 +409,10 @@
                             <input type="url" id="input-cal" placeholder="https://calendly.com/...">
                         </div>
                         <div class="form-group">
+                            <label for="input-demo">Beispiel-Link <span class="hint">wird im Link codiert</span></label>
+                            <input type="url" id="input-demo" placeholder="https://...">
+                        </div>
+                        <div class="form-group full">
                             <label for="input-base">Landing-Page-URL <span class="hint">Basis für den generierten Link</span></label>
                             <input type="url" id="input-base" placeholder="https://deine-landing-page.vercel.app/">
                         </div>
@@ -462,6 +466,7 @@
 
 <script>
 var DEFAULT_CAL  = 'https://calendly.com/ritzaisolutions/30min';
+var DEFAULT_DEMO = 'https://project-frjzx.vercel.app/';
 var DEFAULT_BASE = '';
 var STORAGE_KEY_SETTINGS = 'rais_hub_settings';
 var STORAGE_KEY_HISTORY  = 'rais_hub_history';
@@ -473,6 +478,7 @@ var STORAGE_KEY_HISTORY  = 'rais_hub_history';
     document.getElementById('input-name').addEventListener('input', updateLink);
     document.getElementById('input-biz').addEventListener('input', updateLink);
     document.getElementById('input-cal').addEventListener('input', updateLink);
+    document.getElementById('input-demo').addEventListener('input', updateLink);
     document.getElementById('input-base').addEventListener('input', updateLink);
 })();
 
@@ -481,9 +487,11 @@ function loadSettings() {
     try {
         var s = JSON.parse(localStorage.getItem(STORAGE_KEY_SETTINGS) || '{}');
         document.getElementById('input-cal').value  = s.cal  || DEFAULT_CAL;
+        document.getElementById('input-demo').value = s.demo || DEFAULT_DEMO;
         document.getElementById('input-base').value = s.base || DEFAULT_BASE;
     } catch (e) {
         document.getElementById('input-cal').value  = DEFAULT_CAL;
+        document.getElementById('input-demo').value = DEFAULT_DEMO;
         document.getElementById('input-base').value = DEFAULT_BASE;
     }
     updateLink();
@@ -492,6 +500,7 @@ function loadSettings() {
 function saveSettings() {
     var s = {
         cal:  document.getElementById('input-cal').value.trim(),
+        demo: document.getElementById('input-demo').value.trim(),
         base: document.getElementById('input-base').value.trim()
     };
     localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(s));
@@ -504,6 +513,7 @@ function saveSettings() {
 
 function resetSettings() {
     document.getElementById('input-cal').value  = DEFAULT_CAL;
+    document.getElementById('input-demo').value = DEFAULT_DEMO;
     document.getElementById('input-base').value = DEFAULT_BASE;
     saveSettings();
 }
@@ -513,6 +523,7 @@ function buildLink() {
     var name = document.getElementById('input-name').value.trim();
     var biz  = document.getElementById('input-biz').value.trim();
     var cal  = document.getElementById('input-cal').value.trim()  || DEFAULT_CAL;
+    var demo = document.getElementById('input-demo').value.trim() || DEFAULT_DEMO;
     var base = document.getElementById('input-base').value.trim() || '';
 
     if (!name && !biz) return null;
@@ -526,6 +537,7 @@ function buildLink() {
     if (name) params.set('name', name);
     if (biz)  params.set('business', biz);
     params.set('cal', cal);
+    params.set('demo', demo);
 
     return baseUrl + '?' + params.toString();
 }
